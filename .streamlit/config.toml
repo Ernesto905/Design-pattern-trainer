@@ -1,0 +1,7 @@
+[theme]
+base = "dark"
+primaryColor = "#00ff00"  # Neon green
+backgroundColor = "#000000"  # Black
+secondaryBackgroundColor = "#0a0a0a"  # Very dark gray
+textColor = "#ffffff"  # White
+font = "monospace"
