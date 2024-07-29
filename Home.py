@@ -161,7 +161,7 @@ def check_code(pattern, code, problem):
 
 st.set_page_config(page_title="Design Pattern Learner", page_icon="🐍", layout="wide")
 
-st.title("🐍 Python Design Pattern Learner")
+st.title("🐍 Practice Design Patterns")
 
 # Sidebar for API key input and model selection
 st.sidebar.title("API Configuration")
