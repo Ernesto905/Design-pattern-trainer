@@ -13,7 +13,7 @@ This is a Streamlit application that helps users learn and practice Python desig
 
 ## Deployment
 
-The site is deployed and ready to use. Visit [insert your deployment URL here] to access the application.
+The site is [deployed](https://designpatterns.streamlit.app/) and ready to use. 
 
 ## Running Locally
 
