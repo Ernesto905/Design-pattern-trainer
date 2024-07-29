@@ -159,7 +159,7 @@ def check_code(pattern, code, problem):
         )
         return response.choices[0].message.content
 
-st.set_page_config(page_title="Design Pattern Learner", page_icon="🐍", layout="wide")
+st.set_page_config(page_title="Design Pattern Trainer", page_icon="🐍", layout="wide")
 
 st.title("🐍 Practice Design Patterns")
 
