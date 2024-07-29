@@ -1,13 +1,11 @@
 # Python Design Pattern Learner
 
-This is a Streamlit application that helps users learn and practice Python design patterns. The app generates coding problems based on selected design patterns, difficulty levels, and topics, and provides feedback on user-submitted solutions.
+This Streamlit app helps users learn and practice design patterns in Python. The app generates coding problems based on a selected design patterns, difficulty level, and topic, and provides feedback to user-submitted solutions.
 
 ## Features
 
-- Choose from various design patterns, difficulty levels, and topics
-- Generate coding problems using AI (Claude or ChatGPT)
-- Write and submit code solutions
-- Receive AI-powered feedback on your implementation
+- Generate coding problems with Claude Sonnet 3.5 or Openai's gpt-4o
+- Recieve a grade based on usage of best practices & correctness of your solution
 - Syntax checking for submitted code
 - Option to use Vim keybindings in the code editor
 
