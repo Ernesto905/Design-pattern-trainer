@@ -18,8 +18,10 @@ if "model_choice" not in st.session_state:
 if "problem" not in st.session_state:
     st.session_state.problem = ""
 
+
 def init_anthropic_client(api_key):
     return anthropic.Anthropic(api_key=api_key)
+
 
 def init_openai_client(api_key):
     return openai.OpenAI(api_key=api_key)
@@ -31,6 +33,7 @@ def check_syntax(code):
         return True, None
     except SyntaxError as e:
         return False, str(e)
+
 
 patterns = {
     "Singleton": {
@@ -63,6 +66,7 @@ topics = [
     "Business related",
 ]
 difficulties = ["Very Easy", "Easy", "Medium", "Hard", "Grey Beard"]
+
 
 def generate_prompt(pattern, difficulty, topic):
     if st.session_state.model_choice == "Claude":
@@ -115,8 +119,11 @@ def generate_prompt(pattern, difficulty, topic):
         )
         return response.choices[0].message.content
 
+
 def check_code(pattern, code, problem):
-    system_prompt = "You are an expert Python developer specializing in design patterns."
+    system_prompt = (
+        "You are an expert Python developer specializing in design patterns."
+    )
 
     human_prompt = f"""Analyze the following code and determine if it correctly implements the {pattern} design pattern and solves the given problem.
     Rate the implementation on a scale of 1-5, where 1 is completely incorrect and 5 is excellent.
@@ -159,14 +166,13 @@ def check_code(pattern, code, problem):
         )
         return response.choices[0].message.content
 
+
 st.set_page_config(page_title="Design Pattern Trainer", page_icon="🐍", layout="wide")
 
 st.title("🐍 Practice Design Patterns")
 
-# Sidebar for API key input and model selection
 st.sidebar.title("API Configuration")
 
-# API Key input
 api_key = st.sidebar.text_input(
     "Enter your API key",
     type="password",
@@ -174,30 +180,29 @@ api_key = st.sidebar.text_input(
     key="api_key_input",
 )
 
-# Check for API key in .env file
-env_api_key = os.getenv("ANTHROPIC_API_KEY" if st.session_state.model_choice == "Claude" else "OPENAI_API_KEY")
 
-if not api_key and env_api_key:
-    api_key = env_api_key
-    st.sidebar.success("API key loaded from .env file!")
-
-if api_key:
-    st.session_state.api_key = api_key
-
-# Model choice
 model_choice = st.sidebar.radio(
     "Choose AI model",
     ["Claude", "ChatGPT"],
 )
 st.session_state.model_choice = model_choice
 
-# Initialize client based on model choice and API key
+env_api_key = None
+if st.session_state.model_choice == "Claude":
+    env_api_key = os.getenv("ANTHROPIC_API_KEY")
+elif st.session_state.model_choice == "ChatGPT":
+    env_api_key = os.getenv("OPENAI_API_KEY")
+
+if env_api_key:
+    st.session_state.api_key = env_api_key
+    st.sidebar.success("API key loaded from .env file!")
+
 if st.session_state.api_key:
     if st.session_state.model_choice == "Claude":
         st.session_state.client = init_anthropic_client(st.session_state.api_key)
     else:
         st.session_state.client = init_openai_client(st.session_state.api_key)
-    
+
     if st.sidebar.button("Test API Key"):
         try:
             if st.session_state.model_choice == "Claude":
@@ -211,7 +216,9 @@ if st.session_state.api_key:
                     model="gpt-4o",
                     messages=[{"role": "user", "content": "Hello"}],
                 )
-            st.sidebar.success("API connection successful!")
+            st.sidebar.success(
+                f"API connection successful with model {st.session_state.model_choice}!"
+            )
         except Exception as e:
             st.sidebar.error(f"API connection failed: {str(e)}")
 
@@ -242,7 +249,7 @@ if st.session_state.problem:
 
 use_vim = st.checkbox("Use Vim keybindings")
 
-# Code input using streamlit-ace
+# UI Terminal
 user_code = st_ace(
     placeholder="Enter your Python code here",
     language="python",
@@ -264,7 +271,7 @@ if st.button("Check Code"):
         if user_code and st.session_state.problem:
             # First, check the syntax
             syntax_valid, syntax_error = check_syntax(user_code)
-            
+
             if syntax_valid:
                 with st.spinner("Analyzing your code..."):
                     time.sleep(2)  # Simulate loading
