@@ -103,7 +103,7 @@ elif st.session_state.model_choice == "ChatGPT":
     st.session_state.env_api_key = os.getenv("OPENAI_API_KEY")
 
 if st.session_state.env_api_key:
-    st.sidebar.success(f"API key loaded from .env file!")
+    st.sidebar.success(f"{st.session_state.model_choice} API key loaded from .env file!")
 
 if st.sidebar.button("Submit API Key"):
     # Ask for forgiveness, not for permission
