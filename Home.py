@@ -41,7 +41,7 @@ def init_openai_client(api_key):
         messages=[{"role": "user", "content": "Hello"}],
     )
     st.sidebar.success(
-        f"API connection successful with model {st.session_state.model_choice}!"
+        f"API connection successful with {st.session_state.model_choice}!"
     )
 
 
