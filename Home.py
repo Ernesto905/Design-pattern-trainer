@@ -7,12 +7,15 @@ from streamlit_extras.buy_me_a_coffee import button
 from dotenv import load_dotenv
 import os
 
-import ast
+from utils import check_code, check_syntax, generate_prompt
+
 
 load_dotenv()
 
 if "api_key" not in st.session_state:
     st.session_state.api_key = ""
+if "env_api_key" not in st.session_state:
+    st.session_state.env_api_key = ""
 if "model_choice" not in st.session_state:
     st.session_state.model_choice = "Claude"
 if "problem" not in st.session_state:
@@ -20,19 +23,26 @@ if "problem" not in st.session_state:
 
 
 def init_anthropic_client(api_key):
-    return anthropic.Anthropic(api_key=api_key)
+    st.session_state.client = anthropic.Anthropic(api_key=api_key)
+    st.session_state.client.messages.create(
+        model="claude-3-sonnet-20240229",
+        max_tokens=10,
+        messages=[{"role": "user", "content": "Hello"}],
+    )
+    st.sidebar.success(
+        f"API connection successful with {st.session_state.model_choice}!"
+    )
 
 
 def init_openai_client(api_key):
-    return openai.OpenAI(api_key=api_key)
-
-
-def check_syntax(code):
-    try:
-        ast.parse(code)
-        return True, None
-    except SyntaxError as e:
-        return False, str(e)
+    st.session_state.client = openai.OpenAI(api_key=api_key)
+    st.session_state.client.chat.completions.create(
+        model="gpt-4o",
+        messages=[{"role": "user", "content": "Hello"}],
+    )
+    st.sidebar.success(
+        f"API connection successful with model {st.session_state.model_choice}!"
+    )
 
 
 patterns = {
@@ -68,115 +78,15 @@ topics = [
 difficulties = ["Very Easy", "Easy", "Medium", "Hard", "Grey Beard"]
 
 
-def generate_prompt(pattern, difficulty, topic):
-    if st.session_state.model_choice == "Claude":
-        message = st.session_state.client.messages.create(
-            model="claude-3-sonnet-20240229",
-            max_tokens=4096,
-            temperature=0.7,
-            system="You are an expert Python developer specializing in design patterns.",
-            messages=[
-                {
-                    "role": "user",
-                    "content": f"""Generate a Python coding prompt for implementing the {pattern} design pattern.
-            The difficulty level should be {difficulty}.
-            The context or theme of the problem should be related to {topic}.
-            Provide a clear problem statement and any specific requirements.
-
-            Format the response as follows:
-            Problem: [Problem statement]
-            Requirements:
-            - [Requirement 1]
-            - [Requirement 2]
-            - ...""",
-                }
-            ],
-        )
-        return message.content[0].text
-    else:
-        response = st.session_state.client.chat.completions.create(
-            model="gpt-4o",
-            messages=[
-                {
-                    "role": "system",
-                    "content": "You are an expert Python developer specializing in design patterns.",
-                },
-                {
-                    "role": "user",
-                    "content": f"""Generate a Python coding prompt for implementing the {pattern} design pattern.
-                The difficulty level should be {difficulty}.
-                The context or theme of the problem should be related to {topic}.
-                Provide a clear problem statement and any specific requirements.
-
-                Format the response as follows:
-                Problem: [Problem statement]
-                Requirements:
-                - [Requirement 1]
-                - [Requirement 2]
-                - ...""",
-                },
-            ],
-        )
-        return response.choices[0].message.content
-
-
-def check_code(pattern, code, problem):
-    system_prompt = (
-        "You are an expert Python developer specializing in design patterns."
-    )
-
-    human_prompt = f"""Analyze the following code and determine if it correctly implements the {pattern} design pattern and solves the given problem.
-    Rate the implementation on a scale of 1-5, where 1 is completely incorrect and 5 is excellent.
-    Provide brief suggestions for improvement if necessary.
-    You will be very critical but fair, and precise in your scoring. Everything
-    should be in python.
-
-    Problem:
-    {problem}
-
-    Code:
-    {code}
-
-    Please format your response as follows:
-    Score: [1-5]
-    Suggestions: [Your suggestions here]
-    """
-
-    if st.session_state.model_choice == "Claude":
-        response = st.session_state.client.messages.create(
-            model="claude-3-sonnet-20240229",
-            max_tokens=4096,
-            temperature=0.3,
-            system=system_prompt,
-            messages=[
-                {
-                    "role": "user",
-                    "content": human_prompt,
-                }
-            ],
-        )
-        return response.content[0].text
-    else:
-        response = st.session_state.client.chat.completions.create(
-            model="gpt-4o",
-            messages=[
-                {"role": "system", "content": "You are an expert Python developer."},
-                {"role": "user", "content": human_prompt},
-            ],
-        )
-        return response.choices[0].message.content
-
-
 st.set_page_config(page_title="Design Pattern Trainer", page_icon="🐍", layout="wide")
 
 st.title("🐍 Practice Design Patterns")
 
 st.sidebar.title("API Configuration")
 
-api_key = st.sidebar.text_input(
+st.session_state.api_key = st.sidebar.text_input(
     "Enter your API key",
     type="password",
-    value=st.session_state.api_key,
     key="api_key_input",
 )
 
@@ -187,40 +97,35 @@ model_choice = st.sidebar.radio(
 )
 st.session_state.model_choice = model_choice
 
-env_api_key = None
 if st.session_state.model_choice == "Claude":
-    env_api_key = os.getenv("ANTHROPIC_API_KEY")
+    st.session_state.env_api_key = os.getenv("ANTHROPIC_API_KEY")
 elif st.session_state.model_choice == "ChatGPT":
-    env_api_key = os.getenv("OPENAI_API_KEY")
+    st.session_state.env_api_key = os.getenv("OPENAI_API_KEY")
 
-if env_api_key:
-    st.session_state.api_key = env_api_key
-    st.sidebar.success("API key loaded from .env file!")
+if st.session_state.env_api_key:
+    st.sidebar.success(f"API key loaded from .env file! {st.session_state.env_api_key}")
 
-if st.session_state.api_key:
+if st.sidebar.button("Submit API Key"):
+    # Ask for forgiveness, not for permission
     if st.session_state.model_choice == "Claude":
-        st.session_state.client = init_anthropic_client(st.session_state.api_key)
-    else:
-        st.session_state.client = init_openai_client(st.session_state.api_key)
-
-    if st.sidebar.button("Test API Key"):
         try:
-            if st.session_state.model_choice == "Claude":
-                st.session_state.client.messages.create(
-                    model="claude-3-sonnet-20240229",
-                    max_tokens=10,
-                    messages=[{"role": "user", "content": "Hello"}],
-                )
-            else:
-                st.session_state.client.chat.completions.create(
-                    model="gpt-4o",
-                    messages=[{"role": "user", "content": "Hello"}],
-                )
-            st.sidebar.success(
-                f"API connection successful with model {st.session_state.model_choice}!"
-            )
-        except Exception as e:
-            st.sidebar.error(f"API connection failed: {str(e)}")
+            init_anthropic_client(st.session_state.api_key)
+        except Exception:
+            try:
+                init_anthropic_client(st.session_state.env_api_key)
+            except Exception as e:
+                st.sidebar.error(f"""API connection failed. Please check your
+                key and try again.\n\n\nMessage from API provider: {str(e)}""")
+    else:
+        try:
+            init_openai_client(st.session_state.api_key)
+        except Exception:
+            try:
+                init_openai_client(st.session_state.env_api_key)
+            except Exception as e:
+                st.sidebar.error(f"""API connection failed. Please check your
+                key and try again.\n\n\nMessage from API provider: {str(e)}""")
+
 
 col1, col2, col3 = st.columns(3)
 with col1:
