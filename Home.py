@@ -3,7 +3,6 @@ from streamlit_ace import st_ace
 import anthropic
 import openai
 import time
-from streamlit_extras.buy_me_a_coffee import button
 from dotenv import load_dotenv
 import os
 
@@ -193,13 +192,6 @@ if st.button("Check Code"):
             st.warning("Please generate a problem and enter some code before checking.")
     else:
         st.error("Please enter a valid API key to check your code.")
-
-button(username="ernesto9066", floating=True, width=221)
-
-# Google Form URL
-form_url = "https://docs.google.com/forms/d/e/1FAIpQLSdBn5MA6DCsaib4npqRUCqpR0CRKY_9cnZK7Nngusp_9k9sVg/viewform?usp=sf_link"
-
-st.link_button("Feedback", form_url)
 
 st.markdown(
     """
